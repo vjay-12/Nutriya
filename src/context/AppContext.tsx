@@ -34,6 +34,7 @@ interface AppContextType {
   preppedPortions: PreppedPortion[];
   dietPlans: DietPlan[];
   activePlanId: string;
+  defaultPlanId: string;
   activePlan: DietPlan;
   dailyLogs: DailyLog[];
   todayLog: DailyLog;
@@ -55,6 +56,7 @@ interface AppContextType {
   addPreppedPortion: (portion: PreppedPortion) => Promise<void>;
   deletePreppedPortion: (id: string) => Promise<void>;
   setActivePlan: (id: string) => Promise<void>;
+  setDefaultPlan: (id: string) => Promise<void>;
   updateActivePlanItems: (items: DietPlanItem[]) => Promise<void>;
   saveCurrentPlan: () => Promise<void>;
   createNewPlan: (name: string, copyFromActive?: boolean) => Promise<string>;
@@ -73,6 +75,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [preppedPortions, setPreppedPortions] = useState<PreppedPortion[]>(DEFAULT_PREPPED_PORTIONS);
   const [dietPlans, setDietPlans] = useState<DietPlan[]>(STARTER_DIET_PLANS);
   const [activePlanId, setActivePlanId] = useState<string>('plan_a');
+  const [defaultPlanId, setDefaultPlanId] = useState<string>('plan_a');
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(INITIAL_LOGS);
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -107,7 +110,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setFoods(saved.foods?.length ? saved.foods : MASTER_FOOD_ITEMS);
       setPreppedPortions(saved.preppedPortions?.length ? saved.preppedPortions : DEFAULT_PREPPED_PORTIONS);
       setDietPlans(saved.dietPlans?.length ? saved.dietPlans : STARTER_DIET_PLANS);
-      if (saved.activePlanId) setActivePlanId(saved.activePlanId);
+      const foundDefault =
+        saved.defaultPlanId ||
+        saved.dietPlans?.find((p: DietPlan) => p.isActive)?.id ||
+        'plan_a';
+      setDefaultPlanId(foundDefault);
+      setActivePlanId(saved.activePlanId || foundDefault);
       if (saved.dailyLogs?.length) {
         setDailyLogs(saved.dailyLogs);
         const match = saved.dailyLogs.find((l) => l.date === todayStr);
@@ -133,10 +141,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       preppedPortions,
       dietPlans,
       activePlanId,
+      defaultPlanId,
       dailyLogs,
       todayLog,
     });
-  }, [targets, foods, preppedPortions, dietPlans, activePlanId, dailyLogs, todayLog]);
+  }, [targets, foods, preppedPortions, dietPlans, activePlanId, defaultPlanId, dailyLogs, todayLog]);
 
   const activePlan =
     dietPlans.find((p) => p.id === activePlanId) ||
@@ -185,7 +194,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (data.plans?.length) {
           setDietPlans(data.plans);
           const active = data.plans.find((p: DietPlan) => p.isActive);
-          if (active) setActivePlanId(active.id);
+          if (active) {
+            setDefaultPlanId(active.id);
+          }
         }
       }
 
@@ -361,6 +372,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Diet Plan Actions
   const setActivePlan = async (id: string) => {
     setActivePlanId(id);
+  };
+
+  const setDefaultPlan = async (id: string) => {
+    setDefaultPlanId(id);
+    setActivePlanId(id);
     const updatedPlans = dietPlans.map((p) => ({
       ...p,
       isActive: p.id === id,
@@ -373,7 +389,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(chosen),
-      }).catch((e) => console.warn('Active plan sync failed:', e));
+      }).catch((e) => console.warn('Default plan sync failed:', e));
     }
   };
 
@@ -492,6 +508,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         preppedPortions,
         dietPlans,
         activePlanId,
+        defaultPlanId,
         activePlan,
         dailyLogs,
         todayLog,
@@ -511,6 +528,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         addPreppedPortion,
         deletePreppedPortion,
         setActivePlan,
+        setDefaultPlan,
         updateActivePlanItems,
         saveCurrentPlan,
         createNewPlan,

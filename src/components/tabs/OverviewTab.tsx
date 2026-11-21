@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useApp } from '@/context/AppContext';
 import { calculateNutrientTotals } from '@/lib/clinical-engine';
+import { PlanSelector } from '@/components/PlanSelector';
 import {
   AlertCircle,
   Droplets,
@@ -89,9 +90,9 @@ export function OverviewTab() {
         <div className="absolute bottom-0 left-1/3 -mb-12 w-36 h-36 rounded-full bg-[#8CE07A]/10 pointer-events-none" />
 
         <div className="relative z-10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-2 mb-2">
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider bg-white/20 text-[#8CE07A] backdrop-blur-sm">
                   Active Diet Template
                 </span>
@@ -99,15 +100,15 @@ export function OverviewTab() {
                   {activePlan.items.length} Prepped Portions
                 </span>
               </div>
-              <h3 className="text-2xl font-bold tracking-tight text-white">{activePlan.name}</h3>
-              <p className="text-xs text-white/80 max-w-xl mt-1">
-                {activePlan.description || 'Optimized for bone-matrix remineralization and post-infusion recovery.'}
+              <PlanSelector theme="hero" className="mb-2" />
+              <p className="text-xs text-white/80 max-w-xl">
+                {activePlan.description || 'Optimized daily nutrient balance and meal plan distribution.'}
               </p>
             </div>
 
             <button
               onClick={() => setActiveTab('builder')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white text-[#2E6F5E] hover:bg-[#F8F8F6] font-bold text-xs shadow-md transition-all self-start sm:self-auto"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-white text-[#2E6F5E] hover:bg-[#F8F8F6] font-bold text-xs shadow-md transition-all self-start sm:self-auto flex-shrink-0"
             >
               <span>Edit Today&apos;s Meals</span>
               <ArrowRight className="w-3.5 h-3.5" />

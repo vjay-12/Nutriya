@@ -167,6 +167,7 @@ export interface AppState {
   preppedPortions: PreppedPortion[];
   dietPlans: DietPlan[];
   activePlanId: string;
+  defaultPlanId?: string;
   dailyLogs: DailyLog[];
   todayLog: DailyLog;
   lastSyncedAt?: string;

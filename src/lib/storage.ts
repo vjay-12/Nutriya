@@ -26,6 +26,7 @@ export function getInitialState(): AppState {
     preppedPortions: DEFAULT_PREPPED_PORTIONS,
     dietPlans: STARTER_DIET_PLANS,
     activePlanId: 'plan_a',
+    defaultPlanId: 'plan_a',
     dailyLogs: INITIAL_LOGS,
     todayLog,
     isOffline: false,
