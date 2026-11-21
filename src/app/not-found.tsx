@@ -16,7 +16,7 @@ export default function NotFound() {
         className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#2E6F5E] text-white font-semibold text-xs shadow-soft hover:bg-[#255c4e] transition-colors"
       >
         <Home className="w-4 h-4 text-[#8CE07A]" />
-        <span>Return to batch.care Dashboard</span>
+        <span>Return to Nutriya Dashboard</span>
       </Link>
     </div>
   );

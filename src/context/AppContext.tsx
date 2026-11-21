@@ -298,7 +298,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logWeight = async (weightKg: number) => {
-    const bmi = Number((weightKg / (1.56 * 1.56)).toFixed(1));
+    const hM = (targets.heightCm && targets.heightCm > 0 ? targets.heightCm : 156) / 100;
+    const bmi = Number((weightKg / (hM * hM)).toFixed(1));
     const updated: DailyLog = {
       ...todayLog,
       bodyWeightKg: weightKg,

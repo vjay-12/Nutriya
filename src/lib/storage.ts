@@ -72,7 +72,7 @@ export function exportBackupJson(state: AppState) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `batch_care_backup_${new Date().toISOString().split('T')[0]}.json`;
+  link.download = `nutriya_backup_${new Date().toISOString().split('T')[0]}.json`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

@@ -10,17 +10,28 @@ import {
   Shield,
   Sliders,
   Sparkles,
+  User,
 } from 'lucide-react';
 
 export function RDATargetsTab() {
-  const { targets, updateTargets, setMenopausalStatus, restoreClinicalDefaults } = useApp();
+  const { targets, updateTargets, setMenopausalStatus, restoreClinicalDefaults, todayLog, logWeight } = useApp();
   const [localTargets, setLocalTargets] = useState<RDATargets>(targets);
+  const [currentWeightVal, setCurrentWeightVal] = useState<number>(
+    todayLog.bodyWeightKg ?? targets.targetWeightKg ?? 53
+  );
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [profileSavedSuccess, setProfileSavedSuccess] = useState(false);
 
   // Sync if targets change from outside
   React.useEffect(() => {
     setLocalTargets(targets);
   }, [targets]);
+
+  React.useEffect(() => {
+    if (todayLog.bodyWeightKg) {
+      setCurrentWeightVal(todayLog.bodyWeightKg);
+    }
+  }, [todayLog.bodyWeightKg]);
 
   const handleFieldChange = (key: keyof RDATargets, val: any) => {
     setLocalTargets((prev) => ({
@@ -29,19 +40,50 @@ export function RDATargetsTab() {
     }));
   };
 
+  const handleSaveProfile = async () => {
+    await updateTargets({
+      age: localTargets.age,
+      heightCm: localTargets.heightCm,
+      targetWeightKg: localTargets.targetWeightKg,
+    });
+    if (currentWeightVal > 0) {
+      await logWeight(currentWeightVal);
+    }
+    setProfileSavedSuccess(true);
+    setTimeout(() => setProfileSavedSuccess(false), 2000);
+  };
+
   const handleSaveAll = async () => {
     await updateTargets(localTargets);
+    if (currentWeightVal > 0) {
+      await logWeight(currentWeightVal);
+    }
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2000);
   };
 
   const handleRestore = async () => {
-    if (confirm('Restore clinical defaults based on ICMR-NIN 2020 and Osteoporosis guidelines?')) {
+    if (confirm('Restore clinical defaults based on ICMR-NIN 2020 guidelines?')) {
       await restoreClinicalDefaults();
       setSavedSuccess(true);
       setTimeout(() => setSavedSuccess(false), 2000);
     }
   };
+
+  const hM = (localTargets.heightCm || 156) / 100;
+  const liveBmi =
+    currentWeightVal > 0 && hM > 0
+      ? Number((currentWeightVal / (hM * hM)).toFixed(1))
+      : 21.8;
+
+  const getBmiCategory = (bmi: number) => {
+    if (bmi < 18.5) return { label: 'Underweight', color: 'bg-amber-50 text-amber-700 border-amber-200' };
+    if (bmi <= 24.9) return { label: 'Normal Weight', color: 'bg-[#E7F2EF] text-[#2E6F5E] border-[#2E6F5E]/20' };
+    if (bmi <= 29.9) return { label: 'Overweight', color: 'bg-amber-50 text-amber-800 border-amber-300' };
+    return { label: 'Obese', color: 'bg-rose-50 text-[#E11D48] border-rose-200' };
+  };
+
+  const bmiCat = getBmiCategory(liveBmi);
 
   return (
     <div className="space-y-6 pb-28 md:pb-12 animate-fade-in">
@@ -50,10 +92,10 @@ export function RDATargetsTab() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="w-2.5 h-2.5 rounded-full bg-[#2E6F5E]" />
-            <h2 className="text-lg font-bold text-[#181A1F]">RDA & Clinical Targets Configuration</h2>
+            <h2 className="text-lg font-bold text-[#181A1F]">RDA & Nutrition Targets Configuration</h2>
           </div>
           <p className="text-xs text-[#646873]">
-            Customize daily nutritional goals with ICMR-NIN 2020 & Endocrine Society references.
+            Customize daily nutritional goals aligned with ICMR-NIN 2020 recommendations.
           </p>
         </div>
 
@@ -85,10 +127,138 @@ export function RDATargetsTab() {
           <button
             onClick={handleRestore}
             className="p-2.5 rounded-full bg-[#F8F8F6] hover:bg-[#EFECE6] text-[#646873] hover:text-[#181A1F] border border-[#181A1F]/10 transition-colors"
-            title="Restore Clinical Defaults"
+            title="Restore Defaults"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
+        </div>
+      </div>
+
+      {/* Body Metrics & Profile Card */}
+      <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-soft border border-[#181A1F]/5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-[#181A1F]/5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#E7F2EF] text-[#2E6F5E] flex items-center justify-center font-bold">
+              <User className="w-5 h-5 text-[#2E6F5E]" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-[#181A1F]">Body Metrics & Profile</h3>
+              <p className="text-xs text-[#646873]">
+                Calibrate daily nutrient targets, caloric intake, and hydration to your body metrics
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleSaveProfile}
+            className="px-4 py-2 rounded-full bg-[#2E6F5E] hover:bg-[#255c4e] text-white font-bold text-xs shadow-sm transition-all flex items-center gap-1.5 self-start sm:self-auto"
+          >
+            {profileSavedSuccess ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-[#8CE07A]" />
+                <span>Profile Saved</span>
+              </>
+            ) : (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                <span>Save Metrics</span>
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
+          {/* Age */}
+          <div className="p-3.5 rounded-2xl bg-[#F8F8F6] border border-[#181A1F]/5">
+            <label className="text-[11px] font-medium text-[#646873] block mb-1">Age</label>
+            <div className="flex items-baseline gap-1">
+              <input
+                type="number"
+                min="10"
+                max="120"
+                value={localTargets.age}
+                onChange={(e) => handleFieldChange('age', e.target.value)}
+                className="w-16 bg-white px-2 py-1 rounded-lg border border-[#181A1F]/10 font-bold text-sm tabular-nums text-[#181A1F]"
+              />
+              <span className="text-xs text-[#646873]">years</span>
+            </div>
+          </div>
+
+          {/* Height */}
+          <div className="p-3.5 rounded-2xl bg-[#F8F8F6] border border-[#181A1F]/5">
+            <label className="text-[11px] font-medium text-[#646873] block mb-1">Height</label>
+            <div className="flex items-baseline gap-1">
+              <input
+                type="number"
+                min="100"
+                max="250"
+                value={localTargets.heightCm}
+                onChange={(e) => handleFieldChange('heightCm', e.target.value)}
+                className="w-16 bg-white px-2 py-1 rounded-lg border border-[#181A1F]/10 font-bold text-sm tabular-nums text-[#181A1F]"
+              />
+              <span className="text-xs text-[#646873]">cm</span>
+            </div>
+          </div>
+
+          {/* Current Weight */}
+          <div className="p-3.5 rounded-2xl bg-[#F8F8F6] border border-[#181A1F]/5">
+            <label className="text-[11px] font-medium text-[#646873] block mb-1">Current Weight</label>
+            <div className="flex items-baseline gap-1">
+              <input
+                type="number"
+                step="0.1"
+                min="30"
+                max="200"
+                value={currentWeightVal}
+                onChange={(e) => setCurrentWeightVal(parseFloat(e.target.value) || 0)}
+                className="w-16 bg-white px-2 py-1 rounded-lg border border-[#181A1F]/10 font-bold text-sm tabular-nums text-[#181A1F]"
+              />
+              <span className="text-xs text-[#646873]">kg</span>
+            </div>
+          </div>
+
+          {/* Target Weight */}
+          <div className="p-3.5 rounded-2xl bg-[#F8F8F6] border border-[#181A1F]/5">
+            <label className="text-[11px] font-medium text-[#646873] block mb-1">Target Weight</label>
+            <div className="flex items-baseline gap-1">
+              <input
+                type="number"
+                step="0.1"
+                min="30"
+                max="200"
+                value={localTargets.targetWeightKg}
+                onChange={(e) => handleFieldChange('targetWeightKg', e.target.value)}
+                className="w-16 bg-white px-2 py-1 rounded-lg border border-[#181A1F]/10 font-bold text-sm tabular-nums text-[#181A1F]"
+              />
+              <span className="text-xs text-[#646873]">kg</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Auto-Calculated BMI Banner */}
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-[#F8F8F6] to-[#E7F2EF]/40 border border-[#2E6F5E]/15 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white border border-[#2E6F5E]/10 flex items-center justify-center font-mono font-bold text-[#2E6F5E] text-base shadow-sm">
+              {liveBmi}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[#181A1F]">Auto-Calculated BMI</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${bmiCat.color}`}>
+                  {bmiCat.label}
+                </span>
+              </div>
+              <p className="text-[11px] text-[#646873]">
+                Based on {localTargets.heightCm} cm height and {currentWeightVal} kg weight (WHO standard normal range: 18.5 – 24.9)
+              </p>
+            </div>
+          </div>
+
+          <div className="text-[11px] text-[#646873] hidden sm:block text-right">
+            <span>Optimal Weight Range: </span>
+            <strong className="text-[#181A1F]">
+              {(18.5 * hM * hM).toFixed(1)} – {(24.9 * hM * hM).toFixed(1)} kg
+            </strong>
+          </div>
         </div>
       </div>
 
@@ -236,11 +406,11 @@ export function RDATargetsTab() {
               2. Bone-Health Minerals
             </h3>
             <span className="text-xs text-[#646873]">
-              Post-bisphosphonate remineralization & electrolyte guardrails
+              Bone remineralization, muscle function & electrolyte balance
             </span>
           </div>
           <span className="text-xs font-semibold text-[#2E6F5E] bg-[#E7F2EF] px-2.5 py-1 rounded-full">
-            Osteoporosis Guideline
+            ICMR-NIN & Bone Health
           </span>
         </div>
 
@@ -322,7 +492,7 @@ export function RDATargetsTab() {
                   </div>
                 </td>
                 <td className="py-3 text-[#646873] hidden sm:table-cell">350–400 mg</td>
-                <td className="py-3 text-[#646873]">Prevents post-zoledronic acid hypocalcemic spasm</td>
+                <td className="py-3 text-[#646873]">Supports cellular energy (ATP) & calcium synergy</td>
               </tr>
               <tr>
                 <td className="py-3 font-semibold text-[#181A1F]">Iron (mg)</td>
@@ -506,7 +676,7 @@ export function RDATargetsTab() {
             <div className="p-3 rounded-2xl bg-[#F8F8F6] flex items-center justify-between">
               <div>
                 <span className="font-semibold text-xs text-[#181A1F] block">Target Body Weight</span>
-                <span className="text-[11px] text-[#646873]">BMI 21.8 for 156 cm height</span>
+                <span className="text-[11px] text-[#646873]">Optimal weight maintenance for your height</span>
               </div>
               <div className="flex items-center gap-1">
                 <input

@@ -36,9 +36,9 @@ export default function Home() {
       <footer className="w-full border-t border-[#181A1F]/5 bg-white/40 py-4 px-6 text-center text-[11px] text-[#646873] hidden md:block">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-[#181A1F]">batch.care</span>
+            <span className="font-bold text-[#181A1F]">Nutriya</span>
             <span>&bull;</span>
-            <span>Osteoporosis Nutrition & Hydration PWA</span>
+            <span>Daily Nutrition & Meal Planner</span>
           </div>
           <p>
             ICMR-NIN 2020 & IFCT 2017 compliant &bull; Deployed on Vercel with Neon Serverless DB

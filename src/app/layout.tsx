@@ -18,13 +18,13 @@ const dmMono = DM_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'batch.care — Bone-Health & Diet Planner',
-  description: 'Specialized Osteoporosis Micronutrient, Hydration & Diet Management PWA',
+  title: 'Nutriya — Daily Nutrition & Meal Planner',
+  description: 'Precision Daily Nutrition, Micronutrient, Hydration & Meal Planner PWA',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'batch.care',
+    title: 'Nutriya',
   },
   icons: {
     icon: [
@@ -56,7 +56,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="batch.care" />
+        <meta name="apple-mobile-web-app-title" content="Nutriya" />
       </head>
       <body className="min-h-screen bg-[#F8F8F6] text-[#181A1F] antialiased selection:bg-[#E7F2EF] selection:text-[#2E6F5E]">
         <AppProvider>
@@ -69,10 +69,10 @@ export default function RootLayout({
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js').then(
                     function(reg) {
-                      console.log('batch.care PWA service worker registered:', reg.scope);
+                      console.log('Nutriya PWA service worker registered:', reg.scope);
                     },
                     function(err) {
-                      console.log('batch.care PWA service worker registration failed:', err);
+                      console.log('Nutriya PWA service worker registration failed:', err);
                     }
                   );
                 });

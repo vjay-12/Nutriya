@@ -12,7 +12,6 @@ import {
   Plus,
   RotateCcw,
   Sparkles,
-  ShieldAlert,
   Flame,
   Dna,
   Bone,
@@ -83,80 +82,7 @@ export function OverviewTab() {
 
   return (
     <div className="space-y-6 pb-28 md:pb-12 animate-fade-in">
-      {/* 1. Patient Clinical Snapshot Card */}
-      <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-soft border border-[#181A1F]/5 transition-all">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#181A1F]/5">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-[#E7F2EF] text-[#2E6F5E] flex items-center justify-center font-bold text-xl shadow-inner">
-              50<span className="text-xs">y</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-[#181A1F]">Patient Profile & Clinical Status</h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#F6F4EF] text-[#646873] border border-[#181A1F]/10">
-                  Female
-                </span>
-              </div>
-              <p className="text-xs text-[#646873]">
-                Post-zoledronic acid infusion protocol &bull; Serum Ca 8.0 mg/dL &bull; Vit D 18 ng/mL
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="px-3 py-1.5 rounded-xl bg-[#F8F8F6] border border-[#181A1F]/5 text-xs">
-              <span className="text-[#646873] block text-[10px]">Height</span>
-              <span className="font-bold text-[#181A1F] tabular-nums">{targets.heightCm} cm</span>
-            </div>
-            <div className="px-3 py-1.5 rounded-xl bg-[#F8F8F6] border border-[#181A1F]/5 text-xs">
-              <span className="text-[#646873] block text-[10px]">Current Weight</span>
-              <span className="font-bold text-[#181A1F] tabular-nums">{currentWeight} kg</span>
-            </div>
-            <div className="px-3 py-1.5 rounded-xl bg-[#E7F2EF] border border-[#2E6F5E]/10 text-xs">
-              <span className="text-[#2E6F5E] block text-[10px]">BMI</span>
-              <span className="font-bold text-[#2E6F5E] tabular-nums">{currentBmi} Normal</span>
-            </div>
-            <div className="px-3 py-1.5 rounded-xl bg-[#FDF2E9] border border-[#D96B43]/20 text-xs">
-              <span className="text-[#D96B43] block text-[10px]">Iron Mode</span>
-              <span className="font-bold text-[#D96B43]">
-                {targets.menopausalStatus === 'post' ? 'Post-Meno (11 mg)' : 'Pre-Meno (29 mg)'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* 2. Lab Alert Strip */}
-        <div className="mt-4 p-4 rounded-2xl bg-[#FFF1F2] border border-[#E11D48]/15 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <ShieldAlert className="w-5 h-5 text-[#E11D48] flex-shrink-0 mt-0.5" />
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs font-bold text-[#E11D48] uppercase tracking-wider">
-                  Critical Lab Baseline
-                </span>
-                <span className="text-xs font-semibold text-[#181A1F]">
-                  Serum Calcium: <strong className="text-[#E11D48]">8.0 mg/dL</strong> (Low; Ref 8.5–10.5)
-                </span>
-                <span className="text-xs text-[#646873]">&bull;</span>
-                <span className="text-xs font-semibold text-[#181A1F]">
-                  25(OH) Vit D: <strong className="text-[#E11D48]">18 ng/mL</strong> (Deficient; Target &gt;30)
-                </span>
-              </div>
-              <p className="text-xs text-[#646873] mt-1">
-                <strong>Red-Flag Vigilance:</strong> Watch for perioral tingling, finger carpopedal spasm, or palpitations post-infusion. Report promptly to doctor.
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setActiveTab('analysis')}
-            className="text-xs font-semibold text-[#E11D48] hover:underline whitespace-nowrap self-end md:self-center"
-          >
-            Review Clinical Rules &rarr;
-          </button>
-        </div>
-      </div>
-
-      {/* 3. Active Diet Plan Hero Card (Botanical Sage #2E6F5E) */}
+      {/* Active Diet Plan Hero Card (Botanical Sage #2E6F5E) */}
       <div className="bg-gradient-to-br from-[#2E6F5E] to-[#1B4338] text-white rounded-3xl p-6 sm:p-7 shadow-soft relative overflow-hidden">
         {/* Subtle decorative background watermarks */}
         <div className="absolute top-0 right-0 -mr-8 -mt-8 w-48 h-48 rounded-full bg-white/5 pointer-events-none" />
@@ -418,9 +344,11 @@ export function OverviewTab() {
             {/* Sparkline Visualization */}
             <div className="h-10 w-full mb-3 flex items-end gap-1.5 pt-2">
               {recentLogs.map((log, idx) => {
-                const wt = log.bodyWeightKg ?? 53.0;
-                // Height between 15% and 100% based on range 50-56 kg
-                const hPercent = Math.min(100, Math.max(20, Math.round(((wt - 50) / 6) * 100)));
+                const wt = log.bodyWeightKg ?? targets.targetWeightKg ?? 53.0;
+                const baseTarget = targets.targetWeightKg || 53;
+                const delta = wt - baseTarget;
+                // Height between 25% and 95% based on deviation from target
+                const hPercent = Math.min(95, Math.max(25, Math.round(55 + delta * 10)));
                 return (
                   <div
                     key={log.id || idx}

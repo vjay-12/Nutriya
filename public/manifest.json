@@ -1,7 +1,7 @@
 {
-  "name": "Batch Care — Bone-Health & Diet Planner",
-  "short_name": "batch.care",
-  "description": "Progressive Web App for Osteoporosis Nutrition, Micronutrients & Hydration Management",
+  "name": "Nutriya — Daily Nutrition & Meal Planner",
+  "short_name": "Nutriya",
+  "description": "Precision Daily Nutrition, Micronutrient & Meal Planner Progressive Web App",
   "start_url": "/",
   "id": "/",
   "display": "standalone",

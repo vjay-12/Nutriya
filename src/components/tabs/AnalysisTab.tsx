@@ -334,21 +334,18 @@ export function AnalysisTab() {
       <div className="bg-[#FAF9F5] rounded-3xl p-6 sm:p-7 border border-[#181A1F]/10 space-y-4">
         <div className="flex items-center gap-2">
           <FileText className="w-5 h-5 text-[#2E6F5E]" />
-          <h3 className="font-bold text-sm text-[#181A1F]">Physician Clinical Summary & Discussion Notes</h3>
+          <h3 className="font-bold text-sm text-[#181A1F]">Physician & Clinical Nutrition Summary</h3>
         </div>
         <p className="text-xs text-[#646873]">
-          Prepared for Endocrinologist / Orthopedist review regarding Zoledronic acid follow-up, calcium split-dosing, and Vitamin D3 supplementation:
+          Comprehensive daily nutritional evaluation, micronutrient adequacy, and meal distribution summary:
         </p>
 
         <div className="bg-white rounded-2xl p-4 text-xs space-y-2 border border-[#181A1F]/5">
           <p>
-            <strong>Patient:</strong> 50y Female &bull; <strong>Height:</strong> {targets.heightCm} cm &bull;{' '}
-            <strong>Weight:</strong> {todayLog.bodyWeightKg ?? targets.targetWeightKg} kg &bull;{' '}
+            <strong>User Profile:</strong> {targets.age}y {targets.menopausalStatus === 'post' ? 'Post-Menopausal Female' : 'Female'} &bull; <strong>Height:</strong> {targets.heightCm} cm &bull;{' '}
+            <strong>Current Weight:</strong> {todayLog.bodyWeightKg ?? targets.targetWeightKg} kg &bull;{' '}
             <strong>BMI:</strong>{' '}
             {((todayLog.bodyWeightKg ?? targets.targetWeightKg) / ((targets.heightCm / 100) * (targets.heightCm / 100))).toFixed(1)}
-          </p>
-          <p>
-            <strong>Baseline Labs:</strong> Serum Calcium: 8.0 mg/dL (Low) &bull; 25(OH) Vitamin D: 18 ng/mL (Deficient)
           </p>
           <p>
             <strong>Active Plan Yield:</strong> Energy: {totals.calories} kcal &bull; Protein: {totals.protein} g &bull;
@@ -356,7 +353,7 @@ export function AnalysisTab() {
             Dietary Vit D: {totals.vitaminD} mcg &bull; Magnesium: {totals.magnesium} mg &bull; Phosphorus: {totals.phosphorus} mg
           </p>
           <p className="text-[#646873] pt-1">
-            <strong>Key Questions for Doctor:</strong> 1) Recommended oral Vitamin D3 loading vs maintenance dosage (e.g. 60,000 IU/week). 2) Bedtime elemental calcium gap prescription ({Math.max(0, targets.calciumMin - totals.calcium).toFixed(0)} mg). 3) 6-week repeat serum calcium, albumin, phosphorus & 25(OH)D monitoring schedule.
+            <strong>Key Nutrition Focus Areas:</strong> 1) Fractional calcium bioavailability (optimal &le;500 mg per meal). 2) Vitamin D3 intake & daily sunlight UV-B synergy. 3) High-quality protein & mineral density supporting long-term bone density and muscle preservation.
           </p>
         </div>
       </div>
