@@ -95,6 +95,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [syncStatus, setSyncStatus] = useState<'synced' | 'local_only' | 'error' | 'syncing'>('local_only');
   const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [hasHydrated, setHasHydrated] = useState<boolean>(false);
 
   // Load local state on client mount
   useEffect(() => {
@@ -124,6 +125,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (match) setTodayLog(match);
       }
     }
+    setHasHydrated(true);
 
     // Attempt remote sync with Neon DB in background
     syncAllWithServer();
@@ -137,6 +139,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Persist to localStorage whenever state changes
   useEffect(() => {
+    if (!hasHydrated) return;
     saveLocalState({
       targets,
       foods,
@@ -147,7 +150,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       dailyLogs,
       todayLog,
     });
-  }, [targets, foods, preppedPortions, dietPlans, activePlanId, defaultPlanId, dailyLogs, todayLog]);
+  }, [hasHydrated, targets, foods, preppedPortions, dietPlans, activePlanId, defaultPlanId, dailyLogs, todayLog]);
 
   const activePlan =
     dietPlans.find((p) => p.id === activePlanId) ||
@@ -198,6 +201,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const active = data.plans.find((p: DietPlan) => p.isActive);
           if (active) {
             setDefaultPlanId(active.id);
+            setActivePlanId((prev) => {
+              return data.plans.some((p: DietPlan) => p.id === prev) ? prev : active.id;
+            });
           }
         }
       }
@@ -406,21 +412,29 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     const current = updatedPlans.find((p) => p.id === activePlanId);
     if (current && navigator.onLine) {
-      fetch('/api/diet-plans', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(current),
-      }).catch((e) => console.warn('Plan items sync failed:', e));
+      try {
+        await fetch('/api/diet-plans', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(current),
+        });
+      } catch (e) {
+        console.warn('Plan items sync failed:', e);
+      }
     }
   };
 
   const saveCurrentPlan = async () => {
     if (navigator.onLine && activePlan) {
-      await fetch('/api/diet-plans', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(activePlan),
-      }).catch((e) => console.warn('Plan save failed:', e));
+      try {
+        await fetch('/api/diet-plans', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(activePlan),
+        });
+      } catch (e) {
+        console.warn('Plan save failed:', e);
+      }
     }
   };
 
@@ -441,13 +455,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const updatedPlans = dietPlans.map((p) => ({ ...p, isActive: false })).concat(newPlan);
     setDietPlans(updatedPlans);
     setActivePlanId(newId);
+    setDefaultPlanId(newId);
 
     if (navigator.onLine) {
-      fetch('/api/diet-plans', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newPlan),
-      }).catch((e) => console.warn('New plan sync failed:', e));
+      try {
+        await fetch('/api/diet-plans', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newPlan),
+        });
+      } catch (e) {
+        console.warn('New plan sync failed:', e);
+      }
     }
 
     return newId;
