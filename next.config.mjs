@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  poweredByHeader: false,
   headers: async () => [
     {
-      source: '/(.*)',
+      source: '/:path*',
       headers: [
         {
           key: 'X-Content-Type-Options',
