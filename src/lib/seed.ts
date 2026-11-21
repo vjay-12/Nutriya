@@ -1,5 +1,6 @@
 import { getDb } from './db';
 import {
+  DEFAULT_ADULT_TARGETS,
   DEFAULT_POST_MENOPAUSAL_TARGETS,
   MASTER_FOOD_ITEMS,
   DEFAULT_PREPPED_PORTIONS,
@@ -18,15 +19,15 @@ export async function initAndSeedDatabase(force = false) {
     await sql`
       CREATE TABLE IF NOT EXISTS rda_targets (
         id TEXT PRIMARY KEY DEFAULT 'default',
-        user_id TEXT NOT NULL DEFAULT 'patient_1',
+        user_id TEXT NOT NULL DEFAULT 'default_user',
         menopausal_status TEXT NOT NULL DEFAULT 'post',
-        age INTEGER NOT NULL DEFAULT 50,
-        height_cm NUMERIC(5,2) NOT NULL DEFAULT 156.0,
-        target_weight_kg NUMERIC(5,2) NOT NULL DEFAULT 53.0,
-        energy_min NUMERIC(7,1) NOT NULL DEFAULT 1600.0,
-        energy_max NUMERIC(7,1) NOT NULL DEFAULT 1800.0,
-        protein_min NUMERIC(6,1) NOT NULL DEFAULT 53.0,
-        protein_max NUMERIC(6,1) NOT NULL DEFAULT 64.0,
+        age INTEGER NOT NULL DEFAULT 35,
+        height_cm NUMERIC(5,2) NOT NULL DEFAULT 165.0,
+        target_weight_kg NUMERIC(5,2) NOT NULL DEFAULT 60.0,
+        energy_min NUMERIC(7,1) NOT NULL DEFAULT 1800.0,
+        energy_max NUMERIC(7,1) NOT NULL DEFAULT 2100.0,
+        protein_min NUMERIC(6,1) NOT NULL DEFAULT 55.0,
+        protein_max NUMERIC(6,1) NOT NULL DEFAULT 65.0,
         fibre_min NUMERIC(6,1) NOT NULL DEFAULT 25.0,
         fibre_max NUMERIC(6,1) NOT NULL DEFAULT 30.0,
         sodium_max NUMERIC(7,1) NOT NULL DEFAULT 2000.0,
@@ -190,7 +191,7 @@ export async function initAndSeedDatabase(force = false) {
     // 4. RDA Targets
     const rdaCountRes = await sql`SELECT COUNT(*)::int as count FROM rda_targets;`;
     if ((rdaCountRes[0]?.count ?? 0) === 0 || force) {
-      const t = DEFAULT_POST_MENOPAUSAL_TARGETS;
+      const t = DEFAULT_ADULT_TARGETS;
       await sql`
         INSERT INTO rda_targets (
           id, user_id, menopausal_status, age, height_cm, target_weight_kg,
@@ -248,7 +249,7 @@ export async function initAndSeedDatabase(force = false) {
             id, date, water_intake_ml, sunlight_mins, body_weight_kg, bmi, notes
           ) VALUES (
             ${log.id}, ${log.date}, ${log.waterIntakeMl}, ${log.sunlightMins},
-            ${log.bodyWeightKg ?? 53.0}, ${log.bmi ?? 21.8}, ${log.notes || null}
+            ${log.bodyWeightKg ?? 60.0}, ${log.bmi ?? 22.0}, ${log.notes || null}
           )
           ON CONFLICT (date) DO NOTHING;
         `;

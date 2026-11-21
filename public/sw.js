@@ -1,4 +1,4 @@
-const CACHE_NAME = 'batch-care-v1';
+const CACHE_NAME = 'nutriya-v1';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',

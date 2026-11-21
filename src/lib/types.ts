@@ -1,9 +1,15 @@
 export type MenopausalStatus = 'post' | 'pre';
+export type GenderType = 'female' | 'male' | 'other' | 'custom';
+export type ActivityLevel = 'sedentary' | 'moderate' | 'active';
+export type DietaryPreference = 'all' | 'vegetarian' | 'vegan' | 'eggetarian';
 
 export interface RDATargets {
   id?: string;
   userId: string;
+  gender?: GenderType;
   menopausalStatus: MenopausalStatus;
+  activityLevel?: ActivityLevel;
+  dietaryPreference?: DietaryPreference;
   age: number;
   heightCm: number;
   targetWeightKg: number;

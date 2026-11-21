@@ -7,17 +7,18 @@ import {
   INITIAL_LOGS,
 } from './seed-data';
 
-const STORAGE_KEY = 'batch_care_state_v1';
+const STORAGE_KEY = 'nutriya_state_v1';
+const LEGACY_STORAGE_KEY = 'batch_care_state_v1';
 
 export function getInitialState(): AppState {
   const todayStr = new Date().toISOString().split('T')[0];
   const todayLog = INITIAL_LOGS.find((l) => l.date === todayStr) || {
     id: 'log_' + todayStr,
     date: todayStr,
-    waterIntakeMl: 1250,
+    waterIntakeMl: 1500,
     sunlightMins: 15,
-    bodyWeightKg: 53.0,
-    bmi: 21.8,
+    bodyWeightKg: 60.0,
+    bmi: 22.0,
   };
 
   return {
@@ -39,7 +40,7 @@ export function loadLocalState(): AppState {
   }
 
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
     if (!raw) {
       const initial = getInitialState();
       saveLocalState(initial);

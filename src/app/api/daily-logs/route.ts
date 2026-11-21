@@ -47,9 +47,20 @@ export async function POST(request: Request) {
     log.id = 'log_' + log.date;
   }
 
-  // Calculate BMI if weight is provided (Height is 156 cm = 1.56 m)
+  // Calculate BMI dynamically if weight is provided and height exists
   if (log.bodyWeightKg && !log.bmi) {
-    log.bmi = Number((log.bodyWeightKg / (1.56 * 1.56)).toFixed(1));
+    if (sql) {
+      try {
+        const targetRes = await sql`SELECT height_cm FROM rda_targets LIMIT 1;`;
+        const heightCm = Number(targetRes[0]?.height_cm);
+        if (heightCm > 0) {
+          const hM = heightCm / 100;
+          log.bmi = Number((log.bodyWeightKg / (hM * hM)).toFixed(1));
+        }
+      } catch {
+        // Leave bmi unset if targets query fails
+      }
+    }
   }
 
   if (!sql) {

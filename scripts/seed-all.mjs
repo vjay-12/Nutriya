@@ -270,9 +270,9 @@ async function seedAll() {
   // Daily logs
   console.log('Seeding initial daily logs...');
   const logs = [
-    { id: 'log_today', date: new Date().toISOString().split('T')[0], water: 1750, sun: 20, wt: 53.0, bmi: 21.8, notes: 'Feeling energetic. Sunlight 20m completed.' },
-    { id: 'log_prev_1', date: new Date(Date.now() - 86400000).toISOString().split('T')[0], water: 2250, sun: 25, wt: 53.1, bmi: 21.8 },
-    { id: 'log_prev_2', date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0], water: 2000, sun: 20, wt: 52.9, bmi: 21.7 },
+    { id: 'log_today', date: new Date().toISOString().split('T')[0], water: 1750, sun: 20, wt: 60.0, bmi: 22.0, notes: 'Feeling energetic. Sunlight 20m completed.' },
+    { id: 'log_prev_1', date: new Date(Date.now() - 86400000).toISOString().split('T')[0], water: 2250, sun: 25, wt: 60.2, bmi: 22.1 },
+    { id: 'log_prev_2', date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0], water: 2000, sun: 20, wt: 59.9, bmi: 22.0 },
   ];
 
   for (const log of logs) {

@@ -1,74 +1,63 @@
-# Nutriya — Daily Nutrition & Meal Planner PWA
+# Nutriya
 
-A mobile-first, production-grade Progressive Web App (PWA) designed for personalized daily nutrition, micronutrients, hydration, sunlight exposure, and body weight tracking calibrated with ICMR-NIN 2020 and IFCT 2017 standards.
+Nutriya is a mobile-first, personalized daily nutrition, meal planner, and wellness Progressive Web App (PWA).
 
-Built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS**, and connected to **Neon Serverless PostgreSQL** via `@neondatabase/serverless`.
+## Features
 
----
+- **Personalized Profile & Body Metrics**: Dynamic BMI calculation, demographic profiles, and user-customizable nutritional targets aligned with ICMR-NIN 2020 standards.
+- **Diet Builder & Plan Manager**: Multi-plan template selector with "Set as Default" persistence, category-based meal slots, and live nutrient totaling.
+- **18-Nutrient Inspection & Portion Scaling**: Detailed nutrient breakdown and adjustable portion sizing across verified IFCT 2017 & USDA food items.
+- **Wellness Tracking Dashboard**: Real-time progress monitoring for energy, protein, calcium, vitamin D, daily hydration, sunlight exposure, and weight trends.
+- **Offline-First Resilience**: Full offline capability with local caching and seamless cloud synchronization.
+- **Progressive Web App**: Installable on mobile and desktop devices with responsive layout and standalone mode.
 
-## 🚀 Key Highlights & Architecture
+## Technology Stack
 
-1. **Vercel + Neon DB Ready:**
-   - Serverless Next.js App Router route handlers (`/api/rda`, `/api/foods`, `/api/prepped-portions`, `/api/diet-plans`, `/api/daily-logs`, `/api/seed`).
-   - Zero-config deployment on Vercel with standard `DATABASE_URL`.
-   - Automatic seeding on first run via `/api/seed` or client initialization.
+- **Framework**: Next.js 14 (App Router) with TypeScript
+- **Styling**: Tailwind CSS
+- **Database**: Neon Serverless PostgreSQL (`@neondatabase/serverless`)
+- **Icons & Animation**: Lucide React & Framer Motion
+- **Deployment**: Vercel
 
-2. **Offline-First Resilience:**
-   - Full client state cached in `localStorage` under `batch_care_state_v1`.
-   - Complete functionality offline with clean minimal cloud sync indicator and background sync when online.
-   - One-tap **Export JSON Backup** and **Import JSON Backup** to prevent data loss.
+## Getting Started
 
-3. **5-Tab Architecture:**
-   - **Tab 1: Overview Dashboard (`#dashboard`):** Active diet plan hero card in botanical sage with 4 nutrient circular progress rings (Calories, Protein, Calcium, Vitamin D), and interactive lifestyle check-in widgets (Hydration +150ml/+250ml/+500ml/-250ml, UV-B sunlight 10am-2pm tracker, weight logger with dynamic sparkline).
-   - **Tab 2: RDA Targets & Body Metrics (`#rda`):** User Body Metrics & Profile (Age, Height, Weight, live auto-calculated BMI with category badge), Menopausal quick-switch (Post-menopausal 11mg Iron & 1200mg Calcium vs Pre-menopausal 29mg Iron & 1000mg Calcium), categorized targets for Macros, Bone Minerals, Vitamins, and Lifestyle, side-by-side with ICMR-NIN 2020 references.
-   - **Tab 3: Food Database & Portion Prep (`#fooddb`):** Sub-View A features all 38 IFCT 2017 & USDA food items across 18 nutrients with custom food modal; Sub-View B allows configuring custom weight (g/ml) or multipliers into the Ready Menu Pool.
-   - **Tab 4: Diet Builder & Saved Plans (`#builder`):** Switch between the 4 starter templates (*Plan A: High-Calcium Bone Focus*, *Plan B: High-Protein Lean Day*, *Plan C: Vegetarian Paneer & Dal*, *Plan D: Light Iron & Antioxidant Boost*) or create unlimited custom plans. Features structured category slots and a live floating totalizer strip for kcal, protein, calcium, iron, sodium, and cholesterol.
-   - **Tab 5: Analysis & Doctor Summary (`#analysis`):** 18-nutrient progress grid color-coded by clinical status (Optimal, Caution, Alert), dynamic source-cited clinical evaluation engine (Calcium split-dose saturation, Vit D loading necessity, Iron vs Calcium timing, lipid & sodium guardrails, night meal caloric sufficiency), multi-plan comparison matrix, and **Print / PDF Summary** with `@media print` A4 formatting.
+### Prerequisites
 
-4. **Progressive Web App (PWA):**
-   - Web App Manifest (`manifest.json`)
-   - Service Worker (`sw.js`) with cache-first static strategy & network-first API fallback
-   - 192x192 and 512x512 app icons featuring the botanical sage & sun/leaf emblem
-   - iOS meta tags (`apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`)
+- Node.js 18.x or later
+- npm or yarn
+- Neon Serverless PostgreSQL database
 
----
+### Installation
 
-## 🛠️ Local Development
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/vjay-12/Nutriya.git
+   cd Nutriya
+   ```
 
-1. **Clone repository & install dependencies:**
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. **Environment Variables:**
-   Create `.env.local`:
+3. Configure environment variables:
+   Copy `.env.example` to `.env.local` and provide your database connection string:
+   ```bash
+   cp .env.example .env.local
+   ```
+   In `.env.local`:
    ```env
    DATABASE_URL="postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
    ```
 
-3. **Run database seed script (optional, runs automatically):**
+4. Run database seed (optional, automatically seeds on first launch):
    ```bash
    node scripts/seed-all.mjs
    ```
 
-4. **Start development server:**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+### Commands
 
-5. **Build for production:**
-   ```bash
-   npm run build
-   npm run start
-   ```
-
----
-
-## ☁️ Deploy to Vercel
-
-1. Push this repository to GitHub / GitLab / Bitbucket.
-2. In Vercel, click **Add New Project** and select this repository.
-3. In **Environment Variables**, add:
-   - `DATABASE_URL`: your Neon connection string.
-4. Click **Deploy**. Vercel will build the Next.js App Router app with zero configuration.
+- `npm run dev` — Start the local development server at `http://localhost:3000`
+- `npm run build` — Create an optimized production build
+- `npm run start` — Run the production server
+- `npm run lint` — Run ESLint code quality checks

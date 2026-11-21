@@ -17,7 +17,7 @@ export function RDATargetsTab() {
   const { targets, updateTargets, setMenopausalStatus, restoreClinicalDefaults, todayLog, logWeight } = useApp();
   const [localTargets, setLocalTargets] = useState<RDATargets>(targets);
   const [currentWeightVal, setCurrentWeightVal] = useState<number>(
-    todayLog.bodyWeightKg ?? targets.targetWeightKg ?? 53
+    todayLog.bodyWeightKg ?? targets.targetWeightKg ?? 60
   );
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [profileSavedSuccess, setProfileSavedSuccess] = useState(false);
@@ -36,13 +36,51 @@ export function RDATargetsTab() {
   const handleFieldChange = (key: keyof RDATargets, val: any) => {
     setLocalTargets((prev) => ({
       ...prev,
-      [key]: Number(val) || 0,
+      [key]: typeof val === 'number' ? val : Number(val) || 0,
     }));
+  };
+
+  const handleDemographicChange = (val: string) => {
+    if (val === 'post') {
+      setLocalTargets((prev) => ({
+        ...prev,
+        gender: 'female',
+        menopausalStatus: 'post',
+        iron: 11,
+        calciumMin: 1200,
+      }));
+      setMenopausalStatus('post');
+    } else if (val === 'pre') {
+      setLocalTargets((prev) => ({
+        ...prev,
+        gender: 'female',
+        menopausalStatus: 'pre',
+        iron: 29,
+        calciumMin: 1000,
+      }));
+      setMenopausalStatus('pre');
+    } else if (val === 'male') {
+      setLocalTargets((prev) => ({
+        ...prev,
+        gender: 'male',
+        menopausalStatus: 'pre',
+        iron: 19,
+        calciumMin: 1000,
+      }));
+    } else {
+      setLocalTargets((prev) => ({
+        ...prev,
+        gender: 'custom',
+      }));
+    }
   };
 
   const handleSaveProfile = async () => {
     await updateTargets({
       age: localTargets.age,
+      gender: localTargets.gender,
+      activityLevel: localTargets.activityLevel,
+      dietaryPreference: localTargets.dietaryPreference,
       heightCm: localTargets.heightCm,
       targetWeightKg: localTargets.targetWeightKg,
     });
@@ -70,13 +108,15 @@ export function RDATargetsTab() {
     }
   };
 
-  const hM = (localTargets.heightCm || 156) / 100;
-  const liveBmi =
-    currentWeightVal > 0 && hM > 0
-      ? Number((currentWeightVal / (hM * hM)).toFixed(1))
-      : 21.8;
+  const heightVal = localTargets.heightCm || 0;
+  const hM = heightVal > 0 ? heightVal / 100 : 0;
+  const hasValidMetrics = currentWeightVal > 0 && hM > 0;
+  const liveBmi = hasValidMetrics
+    ? Number((currentWeightVal / (hM * hM)).toFixed(1))
+    : null;
 
-  const getBmiCategory = (bmi: number) => {
+  const getBmiCategory = (bmi: number | null) => {
+    if (bmi === null) return { label: 'Awaiting Metrics', color: 'bg-stone-100 text-stone-600 border-stone-200' };
     if (bmi < 18.5) return { label: 'Underweight', color: 'bg-amber-50 text-amber-700 border-amber-200' };
     if (bmi <= 24.9) return { label: 'Normal Weight', color: 'bg-[#E7F2EF] text-[#2E6F5E] border-[#2E6F5E]/20' };
     if (bmi <= 29.9) return { label: 'Overweight', color: 'bg-amber-50 text-amber-800 border-amber-300' };
@@ -166,6 +206,60 @@ export function RDATargetsTab() {
           </button>
         </div>
 
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-4">
+          {/* Demographic / Reference Profile */}
+          <div className="p-3.5 rounded-2xl bg-[#F8F8F6] border border-[#181A1F]/5">
+            <label className="text-[11px] font-medium text-[#646873] block mb-1">Demographic Profile</label>
+            <select
+              value={
+                localTargets.menopausalStatus === 'post'
+                  ? 'post'
+                  : localTargets.gender === 'male'
+                  ? 'male'
+                  : localTargets.gender === 'custom'
+                  ? 'custom'
+                  : 'pre'
+              }
+              onChange={(e) => handleDemographicChange(e.target.value)}
+              className="w-full bg-white px-2.5 py-1.5 rounded-lg border border-[#181A1F]/10 font-bold text-xs text-[#181A1F] focus:outline-none focus:ring-1 focus:ring-[#2E6F5E]"
+            >
+              <option value="post">Female (Post-Menopausal - 11 mg Fe)</option>
+              <option value="pre">Female (Pre-Menopausal - 29 mg Fe)</option>
+              <option value="male">Male Adult (19 mg Fe)</option>
+              <option value="custom">Custom Reference</option>
+            </select>
+          </div>
+
+          {/* Activity Level */}
+          <div className="p-3.5 rounded-2xl bg-[#F8F8F6] border border-[#181A1F]/5">
+            <label className="text-[11px] font-medium text-[#646873] block mb-1">Activity Level</label>
+            <select
+              value={localTargets.activityLevel || 'moderate'}
+              onChange={(e) => handleFieldChange('activityLevel', e.target.value as any)}
+              className="w-full bg-white px-2.5 py-1.5 rounded-lg border border-[#181A1F]/10 font-bold text-xs text-[#181A1F] focus:outline-none focus:ring-1 focus:ring-[#2E6F5E]"
+            >
+              <option value="sedentary">Sedentary (Desk work / low activity)</option>
+              <option value="moderate">Moderate (Daily walking / 3-5d exercise)</option>
+              <option value="active">Active (Heavy exercise / physical job)</option>
+            </select>
+          </div>
+
+          {/* Dietary Preference */}
+          <div className="p-3.5 rounded-2xl bg-[#F8F8F6] border border-[#181A1F]/5">
+            <label className="text-[11px] font-medium text-[#646873] block mb-1">Dietary Preference</label>
+            <select
+              value={localTargets.dietaryPreference || 'all'}
+              onChange={(e) => handleFieldChange('dietaryPreference', e.target.value as any)}
+              className="w-full bg-white px-2.5 py-1.5 rounded-lg border border-[#181A1F]/10 font-bold text-xs text-[#181A1F] focus:outline-none focus:ring-1 focus:ring-[#2E6F5E]"
+            >
+              <option value="all">All / Omnivore</option>
+              <option value="vegetarian">Vegetarian</option>
+              <option value="vegan">Vegan</option>
+              <option value="eggetarian">Eggetarian</option>
+            </select>
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-4">
           {/* Age */}
           <div className="p-3.5 rounded-2xl bg-[#F8F8F6] border border-[#181A1F]/5">
@@ -175,7 +269,8 @@ export function RDATargetsTab() {
                 type="number"
                 min="10"
                 max="120"
-                value={localTargets.age}
+                value={localTargets.age || ''}
+                placeholder="Age"
                 onChange={(e) => handleFieldChange('age', e.target.value)}
                 className="w-16 bg-white px-2 py-1 rounded-lg border border-[#181A1F]/10 font-bold text-sm tabular-nums text-[#181A1F]"
               />
@@ -191,7 +286,8 @@ export function RDATargetsTab() {
                 type="number"
                 min="100"
                 max="250"
-                value={localTargets.heightCm}
+                value={localTargets.heightCm || ''}
+                placeholder="165"
                 onChange={(e) => handleFieldChange('heightCm', e.target.value)}
                 className="w-16 bg-white px-2 py-1 rounded-lg border border-[#181A1F]/10 font-bold text-sm tabular-nums text-[#181A1F]"
               />
@@ -208,7 +304,8 @@ export function RDATargetsTab() {
                 step="0.1"
                 min="30"
                 max="200"
-                value={currentWeightVal}
+                value={currentWeightVal > 0 ? currentWeightVal : ''}
+                placeholder="60.0"
                 onChange={(e) => setCurrentWeightVal(parseFloat(e.target.value) || 0)}
                 className="w-16 bg-white px-2 py-1 rounded-lg border border-[#181A1F]/10 font-bold text-sm tabular-nums text-[#181A1F]"
               />
@@ -225,7 +322,8 @@ export function RDATargetsTab() {
                 step="0.1"
                 min="30"
                 max="200"
-                value={localTargets.targetWeightKg}
+                value={localTargets.targetWeightKg || ''}
+                placeholder="60.0"
                 onChange={(e) => handleFieldChange('targetWeightKg', e.target.value)}
                 className="w-16 bg-white px-2 py-1 rounded-lg border border-[#181A1F]/10 font-bold text-sm tabular-nums text-[#181A1F]"
               />
@@ -238,7 +336,7 @@ export function RDATargetsTab() {
         <div className="p-4 rounded-2xl bg-gradient-to-r from-[#F8F8F6] to-[#E7F2EF]/40 border border-[#2E6F5E]/15 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white border border-[#2E6F5E]/10 flex items-center justify-center font-mono font-bold text-[#2E6F5E] text-base shadow-sm">
-              {liveBmi}
+              {liveBmi !== null ? liveBmi : '--'}
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -248,7 +346,9 @@ export function RDATargetsTab() {
                 </span>
               </div>
               <p className="text-[11px] text-[#646873]">
-                Based on {localTargets.heightCm} cm height and {currentWeightVal} kg weight (WHO standard normal range: 18.5 – 24.9)
+                {hasValidMetrics
+                  ? `Based on ${localTargets.heightCm} cm height and ${currentWeightVal} kg weight (WHO standard range: 18.5 – 24.9)`
+                  : 'Enter height and weight above to calculate live BMI and optimal weight range'}
               </p>
             </div>
           </div>
@@ -256,7 +356,9 @@ export function RDATargetsTab() {
           <div className="text-[11px] text-[#646873] hidden sm:block text-right">
             <span>Optimal Weight Range: </span>
             <strong className="text-[#181A1F]">
-              {(18.5 * hM * hM).toFixed(1)} – {(24.9 * hM * hM).toFixed(1)} kg
+              {hM > 0
+                ? `${(18.5 * hM * hM).toFixed(1)} – ${(24.9 * hM * hM).toFixed(1)} kg`
+                : 'Enter height to calculate'}
             </strong>
           </div>
         </div>
@@ -311,7 +413,7 @@ export function RDATargetsTab() {
                   </div>
                 </td>
                 <td className="py-3 text-[#646873] hidden sm:table-cell">1,660 kcal (Sedentary)</td>
-                <td className="py-3 text-[#646873]">Maintains 53 kg body weight without catabolic loss</td>
+                <td className="py-3 text-[#646873]">Maintains healthy body weight without catabolic loss</td>
               </tr>
               <tr>
                 <td className="py-3 font-semibold text-[#181A1F]">Protein (g)</td>
@@ -334,7 +436,7 @@ export function RDATargetsTab() {
                   </div>
                 </td>
                 <td className="py-3 text-[#646873] hidden sm:table-cell">46–53 g (0.8–1.0 g/kg)</td>
-                <td className="py-3 text-[#646873]">Target 1.0–1.2 g/kg (53–64 g) to counter sarcopenia</td>
+                <td className="py-3 text-[#646873]">Target 1.0–1.2 g/kg to counter sarcopenia & support lean mass</td>
               </tr>
               <tr>
                 <td className="py-3 font-semibold text-[#181A1F]">Dietary Fibre (g)</td>
@@ -549,7 +651,7 @@ export function RDATargetsTab() {
                   </div>
                 </td>
                 <td className="py-3 text-[#646873] hidden sm:table-cell">10–13.2 mg</td>
-                <td className="py-3 text-[#646873]">Osteoblastic collagen synthesis cofactor</td>
+                <td className="py-3 text-[#646873]">Bone collagen synthesis & immune cofactor</td>
               </tr>
             </tbody>
           </table>
@@ -601,7 +703,7 @@ export function RDATargetsTab() {
             <div className="p-3 rounded-2xl bg-[#F8F8F6] flex items-center justify-between">
               <div>
                 <span className="font-semibold text-xs text-[#181A1F] block">Vitamin K</span>
-                <span className="text-[11px] text-[#646873]">Target: 55–90 mcg (Osteocalcin carboxylation)</span>
+                <span className="text-[11px] text-[#646873]">Target: 55–90 mcg (Bone protein carboxylation & mineralization)</span>
               </div>
               <div className="flex items-center gap-1">
                 <input

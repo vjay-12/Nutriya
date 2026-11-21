@@ -1,46 +1,69 @@
 import { FoodItem, PreppedPortion, DietPlan, RDATargets, DailyLog } from './types';
 
-export const DEFAULT_POST_MENOPAUSAL_TARGETS: RDATargets = {
-  userId: 'patient_1',
-  menopausalStatus: 'post',
-  age: 50,
-  heightCm: 156,
-  targetWeightKg: 53.0,
-  energyMin: 1600,
-  energyMax: 1800,
-  proteinMin: 53,
-  proteinMax: 64,
+// Generic ICMR-NIN 2020 Adult Reference Targets
+export const DEFAULT_ADULT_TARGETS: RDATargets = {
+  userId: 'default_user',
+  gender: 'female',
+  menopausalStatus: 'pre',
+  activityLevel: 'moderate',
+  dietaryPreference: 'all',
+  age: 30,
+  heightCm: 165,
+  targetWeightKg: 60.0,
+  energyMin: 1800,
+  energyMax: 2100,
+  proteinMin: 55,
+  proteinMax: 65,
   fibreMin: 25,
   fibreMax: 30,
   sodiumMax: 2000,
   cholesterolMax: 300,
-  calciumMin: 1200,
+  calciumMin: 1000,
   calciumMax: 2000,
   phosphorusMin: 700,
   phosphorusMax: 1000,
   magnesiumMin: 350,
   magnesiumMax: 400,
-  iron: 11, // Post-Menopausal target
+  iron: 19, // ICMR-NIN 2020 standard adult reference
   zincMin: 10,
   zincMax: 13.2,
   potassium: 3500,
-  vitaminDMin: 20, // 800 IU
+  vitaminDMin: 15, // 600 IU
   vitaminDMax: 25, // 1000 IU
   vitaminCMin: 75,
   vitaminCMax: 100,
   vitaminKMin: 55,
   vitaminKMax: 90,
   vitaminB12: 2.2,
-  waterTargetMl: 2250,
+  waterTargetMl: 2500,
   sunlightTargetMins: 20,
 };
 
 export const DEFAULT_PRE_MENOPAUSAL_TARGETS: RDATargets = {
-  ...DEFAULT_POST_MENOPAUSAL_TARGETS,
+  ...DEFAULT_ADULT_TARGETS,
   menopausalStatus: 'pre',
   calciumMin: 1000,
   calciumMax: 2000,
-  iron: 29, // Pre-Menopausal target
+  iron: 29, // Pre-menopausal iron RDA
+};
+
+export const DEFAULT_POST_MENOPAUSAL_TARGETS: RDATargets = {
+  ...DEFAULT_ADULT_TARGETS,
+  menopausalStatus: 'post',
+  calciumMin: 1200, // Post-menopausal calcium RDA
+  calciumMax: 2000,
+  iron: 11, // Post-menopausal iron RDA
+};
+
+export const DEFAULT_MALE_TARGETS: RDATargets = {
+  ...DEFAULT_ADULT_TARGETS,
+  gender: 'male',
+  energyMin: 2100,
+  energyMax: 2400,
+  proteinMin: 65,
+  proteinMax: 75,
+  calciumMin: 1000,
+  iron: 19,
 };
 
 export const MASTER_FOOD_ITEMS: FoodItem[] = [
@@ -1174,8 +1197,8 @@ export const INITIAL_LOGS: DailyLog[] = [
     date: new Date().toISOString().split('T')[0],
     waterIntakeMl: 1750,
     sunlightMins: 20,
-    bodyWeightKg: 53.0,
-    bmi: 21.8,
+    bodyWeightKg: 60.0,
+    bmi: 22.0,
     notes: 'Feeling energetic. Sunlight 20m completed at 11:30 AM.',
   },
   {
@@ -1183,31 +1206,31 @@ export const INITIAL_LOGS: DailyLog[] = [
     date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
     waterIntakeMl: 2250,
     sunlightMins: 25,
-    bodyWeightKg: 53.1,
-    bmi: 21.8,
+    bodyWeightKg: 60.2,
+    bmi: 22.1,
   },
   {
     id: 'log_prev_2',
     date: new Date(Date.now() - 86400000 * 2).toISOString().split('T')[0],
     waterIntakeMl: 2000,
     sunlightMins: 20,
-    bodyWeightKg: 52.9,
-    bmi: 21.7,
+    bodyWeightKg: 59.9,
+    bmi: 22.0,
   },
   {
     id: 'log_prev_3',
     date: new Date(Date.now() - 86400000 * 3).toISOString().split('T')[0],
     waterIntakeMl: 2150,
     sunlightMins: 15,
-    bodyWeightKg: 53.2,
-    bmi: 21.9,
+    bodyWeightKg: 60.1,
+    bmi: 22.1,
   },
   {
     id: 'log_prev_4',
     date: new Date(Date.now() - 86400000 * 4).toISOString().split('T')[0],
     waterIntakeMl: 2250,
     sunlightMins: 20,
-    bodyWeightKg: 53.0,
-    bmi: 21.8,
+    bodyWeightKg: 60.0,
+    bmi: 22.0,
   },
 ];

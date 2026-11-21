@@ -342,10 +342,24 @@ export function AnalysisTab() {
 
         <div className="bg-white rounded-2xl p-4 text-xs space-y-2 border border-[#181A1F]/5">
           <p>
-            <strong>User Profile:</strong> {targets.age}y {targets.menopausalStatus === 'post' ? 'Post-Menopausal Female' : 'Female'} &bull; <strong>Height:</strong> {targets.heightCm} cm &bull;{' '}
-            <strong>Current Weight:</strong> {todayLog.bodyWeightKg ?? targets.targetWeightKg} kg &bull;{' '}
-            <strong>BMI:</strong>{' '}
-            {((todayLog.bodyWeightKg ?? targets.targetWeightKg) / ((targets.heightCm / 100) * (targets.heightCm / 100))).toFixed(1)}
+            <strong>User Profile:</strong> {targets.age ? `${targets.age}y` : 'Adult'} &bull;{' '}
+            <strong>Demographic:</strong>{' '}
+            {targets.menopausalStatus === 'post'
+              ? 'Post-Menopausal Female'
+              : targets.menopausalStatus === 'pre'
+              ? 'Pre-Menopausal Female'
+              : targets.gender === 'male'
+              ? 'Male Adult'
+              : 'Individual'}{' '}
+            &bull; <strong>Height:</strong> {targets.heightCm ? `${targets.heightCm} cm` : 'Not set'} &bull;{' '}
+            <strong>Current Weight:</strong>{' '}
+            {todayLog.bodyWeightKg ?? targets.targetWeightKg
+              ? `${todayLog.bodyWeightKg ?? targets.targetWeightKg} kg`
+              : 'Not set'}{' '}
+            &bull; <strong>BMI:</strong>{' '}
+            {targets.heightCm && targets.heightCm > 0 && (todayLog.bodyWeightKg ?? targets.targetWeightKg)
+              ? ((todayLog.bodyWeightKg ?? targets.targetWeightKg)! / ((targets.heightCm / 100) * (targets.heightCm / 100))).toFixed(1)
+              : '--'}
           </p>
           <p>
             <strong>Active Plan Yield:</strong> Energy: {totals.calories} kcal &bull; Protein: {totals.protein} g &bull;
@@ -361,7 +375,7 @@ export function AnalysisTab() {
       {/* Clinical Disclaimer Footer */}
       <footer className="text-center text-[11px] text-[#646873] px-4 pt-4 border-t border-[#181A1F]/5">
         <p>
-          <strong>Medical Disclaimer:</strong> Nutritional figures reference ICMR-NIN 2020 Dietary Guidelines for Indians and IFCT 2017. All medical diagnoses, bisphosphonate management, and calcium/Vitamin D3 supplementation dosages must be confirmed and supervised by your treating physician.
+          <strong>Medical Disclaimer:</strong> Nutritional figures reference ICMR-NIN 2020 Dietary Guidelines for Indians and IFCT 2017. All medical conditions, dietary adjustments, and supplementation dosages must be confirmed and supervised by your qualified healthcare provider or dietitian.
         </p>
       </footer>
     </div>

@@ -12,6 +12,7 @@ import {
   MenopausalStatus,
 } from '@/lib/types';
 import {
+  DEFAULT_ADULT_TARGETS,
   DEFAULT_POST_MENOPAUSAL_TARGETS,
   DEFAULT_PRE_MENOPAUSAL_TARGETS,
   MASTER_FOOD_ITEMS,
@@ -70,7 +71,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [targets, setTargets] = useState<RDATargets>(DEFAULT_POST_MENOPAUSAL_TARGETS);
+  const [targets, setTargets] = useState<RDATargets>(DEFAULT_ADULT_TARGETS);
   const [foods, setFoods] = useState<FoodItem[]>(MASTER_FOOD_ITEMS);
   const [preppedPortions, setPreppedPortions] = useState<PreppedPortion[]>(DEFAULT_PREPPED_PORTIONS);
   const [dietPlans, setDietPlans] = useState<DietPlan[]>(STARTER_DIET_PLANS);
@@ -84,8 +85,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     date: todayStr,
     waterIntakeMl: 1750,
     sunlightMins: 20,
-    bodyWeightKg: 53.0,
-    bmi: 21.8,
+    bodyWeightKg: 60.0,
+    bmi: 22.0,
   });
 
   const [activeTab, setActiveTab] = useState<TabType>('overview');
@@ -309,8 +310,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logWeight = async (weightKg: number) => {
-    const hM = (targets.heightCm && targets.heightCm > 0 ? targets.heightCm : 156) / 100;
-    const bmi = Number((weightKg / (hM * hM)).toFixed(1));
+    const hM = targets.heightCm && targets.heightCm > 0 ? targets.heightCm / 100 : 0;
+    const bmi = hM > 0 ? Number((weightKg / (hM * hM)).toFixed(1)) : undefined;
     const updated: DailyLog = {
       ...todayLog,
       bodyWeightKg: weightKg,

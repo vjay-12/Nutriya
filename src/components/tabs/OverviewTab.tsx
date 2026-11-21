@@ -52,8 +52,11 @@ export function OverviewTab() {
   const sunPercent = Math.min(100, Math.round((todayLog.sunlightMins / sunTarget) * 100));
 
   // Current weight and BMI
-  const currentWeight = todayLog.bodyWeightKg ?? targets.targetWeightKg;
-  const currentBmi = (currentWeight / ((targets.heightCm / 100) * (targets.heightCm / 100))).toFixed(1);
+  const currentWeight = todayLog.bodyWeightKg ?? targets.targetWeightKg ?? 60.0;
+  const currentBmi =
+    targets.heightCm && targets.heightCm > 0 && currentWeight > 0
+      ? (currentWeight / ((targets.heightCm / 100) * (targets.heightCm / 100))).toFixed(1)
+      : '--';
 
   // Sparkline data for weight history (last 7 logs)
   const recentLogs = [...dailyLogs]
@@ -345,8 +348,8 @@ export function OverviewTab() {
             {/* Sparkline Visualization */}
             <div className="h-10 w-full mb-3 flex items-end gap-1.5 pt-2">
               {recentLogs.map((log, idx) => {
-                const wt = log.bodyWeightKg ?? targets.targetWeightKg ?? 53.0;
-                const baseTarget = targets.targetWeightKg || 53;
+                const wt = log.bodyWeightKg ?? targets.targetWeightKg ?? 60.0;
+                const baseTarget = targets.targetWeightKg || 60.0;
                 const delta = wt - baseTarget;
                 // Height between 25% and 95% based on deviation from target
                 const hPercent = Math.min(95, Math.max(25, Math.round(55 + delta * 10)));
