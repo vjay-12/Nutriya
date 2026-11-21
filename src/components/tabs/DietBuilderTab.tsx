@@ -7,8 +7,15 @@ import { calculateNutrientTotals } from '@/lib/clinical-engine';
 import { PlanSelector } from '@/components/PlanSelector';
 import { FoodDetailModal } from '@/components/FoodDetailModal';
 import {
+  isOptionSelected,
+  getOptionDisplayWeight,
+  applyOptionSelection,
+  FoodOption,
+} from '@/lib/selection-engine';
+import {
   Copy,
   Plus,
+  Pencil,
   Trash2,
   Save,
   Check,
@@ -18,18 +25,6 @@ import {
   X,
   Info,
 } from 'lucide-react';
-
-interface FoodOption {
-  id: string;
-  name: string;
-  foodId: string;
-  defaultWeightG: number;
-  qty?: number;
-  unit?: string;
-  metrics?: string;
-  pairedFoodId?: string;
-  pairedWeightG?: number;
-}
 
 export function DietBuilderTab() {
   const {
@@ -41,11 +36,14 @@ export function DietBuilderTab() {
     saveCurrentPlan,
     createNewPlan,
     duplicatePlan,
+    renamePlan,
     deletePlan,
   } = useApp();
 
   const [newPlanModalOpen, setNewPlanModalOpen] = useState(false);
   const [newPlanName, setNewPlanName] = useState('');
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [renamePlanName, setRenamePlanName] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Detail Modal State
@@ -61,10 +59,6 @@ export function DietBuilderTab() {
   // Helper to check if a specific food/portion is in current plan items for a slot
   const isSelectedInSlot = (slot: MealSlot, foodId: string) => {
     return activePlan.items.some((i) => i.mealSlot === slot && i.foodId === foodId);
-  };
-
-  const getItemInSlot = (slot: MealSlot, foodId: string) => {
-    return activePlan.items.find((i) => i.mealSlot === slot && i.foodId === foodId);
   };
 
   // Open full-nutrient inspection sheet
@@ -123,61 +117,22 @@ export function DietBuilderTab() {
   };
 
   const handleRemovePortionFromModal = (foodId: string, slot: MealSlot) => {
-    const filtered = activePlan.items.filter((i) => !(i.mealSlot === slot && i.foodId === foodId));
+    const isSingleSlot = [
+      'morning_eggs',
+      'morning_fruit_rotating',
+      'morning_breakfast',
+      'afternoon_grain',
+      'afternoon_gravy',
+      'afternoon_protein',
+      'afternoon_poriyal',
+      'afternoon_accompaniment',
+    ].includes(slot);
+
+    const filtered = isSingleSlot
+      ? activePlan.items.filter((i) => i.mealSlot !== slot)
+      : activePlan.items.filter((i) => !(i.mealSlot === slot && i.foodId === foodId));
+
     updateActivePlanItems(filtered);
-  };
-
-  // Single-pick handler (radio style)
-  const handlePickSingle = (
-    slot: MealSlot,
-    foodId: string,
-    portionName: string,
-    weightG: number,
-    quantity = 1
-  ) => {
-    const filtered = activePlan.items.filter((i) => i.mealSlot !== slot);
-    const existing = activePlan.items.find((i) => i.mealSlot === slot && i.foodId === foodId);
-
-    if (existing) {
-      updateActivePlanItems(filtered);
-    } else {
-      const newItem: DietPlanItem = {
-        id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        planId: activePlan.id,
-        mealSlot: slot,
-        foodId,
-        portionName,
-        weightG,
-        quantity,
-      };
-      updateActivePlanItems([...filtered, newItem]);
-    }
-  };
-
-  // Multi-select toggle handler
-  const handleToggleMulti = (
-    slot: MealSlot,
-    foodId: string,
-    portionName: string,
-    weightG: number,
-    quantity = 1
-  ) => {
-    const isPresent = activePlan.items.some((i) => i.mealSlot === slot && i.foodId === foodId);
-    if (isPresent) {
-      const filtered = activePlan.items.filter((i) => !(i.mealSlot === slot && i.foodId === foodId));
-      updateActivePlanItems(filtered);
-    } else {
-      const newItem: DietPlanItem = {
-        id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-        planId: activePlan.id,
-        mealSlot: slot,
-        foodId,
-        portionName,
-        weightG,
-        quantity,
-      };
-      updateActivePlanItems([...activePlan.items, newItem]);
-    }
   };
 
   const handleSave = async () => {
@@ -192,6 +147,13 @@ export function DietBuilderTab() {
     await createNewPlan(newPlanName.trim(), true);
     setNewPlanName('');
     setNewPlanModalOpen(false);
+  };
+
+  const handleRename = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!renamePlanName.trim()) return;
+    await renamePlan(activePlan.id, renamePlanName.trim());
+    setRenameModalOpen(false);
   };
 
   const handleDeletePlan = async (id: string) => {
@@ -212,12 +174,8 @@ export function DietBuilderTab() {
     mode: 'single' | 'multi' = 'single'
   ) => {
     const isNone = opt.foodId === 'none';
-    const currentItem = getItemInSlot(slot, opt.foodId);
-    const isSelected = isNone
-      ? !activePlan.items.some((i) => i.mealSlot === slot)
-      : Boolean(currentItem);
-
-    const displayWeight = currentItem ? currentItem.weightG : opt.defaultWeightG;
+    const isSelected = isOptionSelected(opt, slot, activePlan.items);
+    const displayWeight = getOptionDisplayWeight(opt, slot, activePlan.items);
 
     return (
       <div
@@ -232,38 +190,16 @@ export function DietBuilderTab() {
         <button
           type="button"
           onClick={() => {
-            if (isNone) {
-              const withoutSlot = activePlan.items.filter((i) => i.mealSlot !== slot);
-              updateActivePlanItems(withoutSlot);
-            } else if (opt.pairedFoodId) {
-              // 1 Whole + 1 White combo
-              const withoutSlot = activePlan.items.filter((i) => i.mealSlot !== slot);
-              const item1: DietPlanItem = {
-                id: `item_${Date.now()}_1`,
-                planId: activePlan.id,
-                mealSlot: slot,
-                foodId: opt.foodId,
-                portionName: '1 Whole Egg (50g)',
-                weightG: opt.defaultWeightG,
-                quantity: 1,
-              };
-              const item2: DietPlanItem = {
-                id: `item_${Date.now()}_2`,
-                planId: activePlan.id,
-                mealSlot: slot,
-                foodId: opt.pairedFoodId,
-                portionName: '1 Egg White (35g)',
-                weightG: opt.pairedWeightG || 35,
-                quantity: 1,
-              };
-              updateActivePlanItems([...withoutSlot, item1, item2]);
-            } else if (mode === 'single') {
-              handlePickSingle(slot, opt.foodId, opt.name, displayWeight, opt.qty || 1);
-            } else {
-              handleToggleMulti(slot, opt.foodId, opt.name, displayWeight, opt.qty || 1);
-            }
+            const nextItems = applyOptionSelection(
+              opt,
+              slot,
+              mode,
+              activePlan.items,
+              activePlan.id
+            );
+            updateActivePlanItems(nextItems);
           }}
-          className="flex-1 flex flex-col text-left py-0.5"
+          className="flex-1 flex flex-col text-left py-0.5 cursor-pointer focus:outline-none"
         >
           <div className="flex items-center gap-1.5 flex-wrap">
             <span
@@ -300,7 +236,7 @@ export function DietBuilderTab() {
               handleOpenDetail(opt.foodId, slot, slotTitle, displayWeight, opt.qty || 1);
             }}
             title="Inspect 18 nutrients & scale portion"
-            className="p-1.5 rounded-xl hover:bg-white text-[#646873] hover:text-[#2E6F5E] transition-colors border border-transparent hover:border-[#181A1F]/10 flex-shrink-0"
+            className="p-1.5 rounded-xl hover:bg-white text-[#646873] hover:text-[#2E6F5E] transition-colors border border-transparent hover:border-[#181A1F]/10 flex-shrink-0 cursor-pointer"
           >
             <Info className="w-3.5 h-3.5" />
           </button>
@@ -336,6 +272,17 @@ export function DietBuilderTab() {
             >
               <Copy className="w-3.5 h-3.5 text-[#646873]" />
               <span className="hidden sm:inline">Duplicate</span>
+            </button>
+            <button
+              onClick={() => {
+                setRenamePlanName(activePlan.name);
+                setRenameModalOpen(true);
+              }}
+              className="px-3.5 py-2 rounded-full bg-[#F8F8F6] hover:bg-[#EFECE6] text-[#181A1F] border border-[#181A1F]/10 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              title="Rename current plan"
+            >
+              <Pencil className="w-3.5 h-3.5 text-[#646873]" />
+              <span className="hidden sm:inline">Rename</span>
             </button>
             <button
               onClick={handleSave}
@@ -386,7 +333,7 @@ export function DietBuilderTab() {
                 id: 'egg_combo',
                 name: '1 Whole Egg + 1 Egg White',
                 foodId: 'egg_whole',
-                defaultWeightG: 50,
+                defaultWeightG: 85,
                 pairedFoodId: 'egg_white',
                 pairedWeightG: 35,
                 metrics: '10g Prot • 185mg Chol • 27mg Ca',
@@ -1001,9 +948,59 @@ export function DietBuilderTab() {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-full bg-[#2E6F5E] text-white text-xs font-semibold shadow-soft"
+                  disabled={!newPlanName.trim()}
+                  className="px-5 py-2 rounded-full bg-[#2E6F5E] text-white text-xs font-semibold shadow-soft disabled:opacity-40"
                 >
                   Create Plan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Rename Plan */}
+      {renameModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border border-[#181A1F]/10 relative">
+            <button
+              onClick={() => setRenameModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-full hover:bg-[#EFECE6] text-[#646873]"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h3 className="text-lg font-bold text-[#181A1F] mb-1">Rename Diet Plan</h3>
+            <p className="text-xs text-[#646873] mb-4">
+              Enter a new name for &quot;{activePlan.name}&quot;.
+            </p>
+
+            <form onSubmit={handleRename} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#181A1F] mb-1">Plan Name</label>
+                <input
+                  type="text"
+                  required
+                  value={renamePlanName}
+                  onChange={(e) => setRenamePlanName(e.target.value)}
+                  className="w-full text-xs px-3.5 py-2.5 rounded-xl bg-[#F8F8F6] border border-[#181A1F]/10 focus:outline-none focus:ring-2 focus:ring-[#2E6F5E]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setRenameModalOpen(false)}
+                  className="px-4 py-2 rounded-full border border-[#181A1F]/10 text-xs font-semibold text-[#646873]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!renamePlanName.trim()}
+                  className="px-5 py-2 rounded-full bg-[#2E6F5E] text-white text-xs font-semibold shadow-soft disabled:opacity-40"
+                >
+                  Save Name
                 </button>
               </div>
             </form>

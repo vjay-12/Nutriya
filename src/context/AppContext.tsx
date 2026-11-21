@@ -62,6 +62,7 @@ interface AppContextType {
   saveCurrentPlan: () => Promise<void>;
   createNewPlan: (name: string, copyFromActive?: boolean) => Promise<string>;
   duplicatePlan: (id: string) => Promise<string>;
+  renamePlan: (id: string, newName: string) => Promise<void>;
   deletePlan: (id: string) => Promise<void>;
   exportBackup: () => void;
   importBackup: (json: string) => boolean;
@@ -457,6 +458,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return createNewPlan(`${target.name} (Copy)`, true);
   };
 
+  const renamePlan = async (id: string, newName: string) => {
+    const trimmed = newName.trim();
+    if (!trimmed) return;
+    const updatedPlans = dietPlans.map((p) => {
+      if (p.id === id) {
+        return { ...p, name: trimmed, updatedAt: new Date().toISOString() };
+      }
+      return p;
+    });
+    setDietPlans(updatedPlans);
+
+    const updated = updatedPlans.find((p) => p.id === id);
+    if (updated && navigator.onLine) {
+      fetch('/api/diet-plans', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      }).catch((e) => console.warn('Rename plan sync failed:', e));
+    }
+  };
+
   const deletePlan = async (id: string) => {
     if (dietPlans.length <= 1) return; // Must have at least 1 plan
     const remaining = dietPlans.filter((p) => p.id !== id);
@@ -534,6 +556,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         saveCurrentPlan,
         createNewPlan,
         duplicatePlan,
+        renamePlan,
         deletePlan,
         exportBackup,
         importBackup,
